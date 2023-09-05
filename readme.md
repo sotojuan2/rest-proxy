@@ -17,28 +17,26 @@
    ```
 2. Subscribe to the topic purchases.
 ```bash
-   curl -X POST
-   -H "Content-Type: application/vnd.kafka.v2+json"
-   --data '{"topics":["purchases"]}'
+   curl -X POST \
+   -H "Content-Type: application/vnd.kafka.v2+json" \
+   --data '{"topics":["purchases"]}' \
    http://localhost:8082/consumers/cg1/instances/ci1/subscription
 ```
 3. Consume
 
 ```bash
-curl -X POST \
-     -H "Content-Type: application/vnd.kafka.v2+json" \
-     --data '{"topics":["purchases"]}' \
-     http://localhost:8082/consumers/cg1/instances/ci1/subscription 
+curl -X GET \
+     -H "Accept: application/vnd.kafka.json.v2+json" \
+     http://localhost:8082/consumers/cg1/instances/ci1/records 
 ```
 
 4. Consume  **after 10 seconds** (sleep 10 seg)
 
 ```bash
 sleep 10
-curl -X POST \
-     -H "Content-Type: application/vnd.kafka.v2+json" \
-     --data '{"topics":["purchases"]}' \
-     http://localhost:8082/consumers/cg1/instances/ci1/subscription 
+curl -X GET \
+    -H "Accept: application/vnd.kafka.json.v2+json" \
+     http://localhost:8082/consumers/cg1/instances/ci1/records
 ```
 
 5. Close the consumer with a DELETE 
