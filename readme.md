@@ -55,7 +55,7 @@ curl -X DELETE \
    ```bash
    cluster_id=$(curl  -s --location 'http://localhost:8082/v3/clusters' | jq '.data[0].cluster_id' | tr -d '"')
    ```
-3. Create schema donust-value
+3. Create schema donuts-value
 
 ```bash
 curl -v -X POST -H "Content-Type: application/json" --data @data/test.avro http://localhost:8081/subjects/donuts-value/versions
@@ -95,11 +95,7 @@ curl --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/r
    "headers": [
        {
            "name": "Header-1",
-           "value": "SGVhZGVyLTE="
-       },
-       {
-           "name": "Header-2",
-           "value": "SGVhZGVyLTI="
+           "value": "aG9sYQ=="
        }
    ],
    "value": {
@@ -110,3 +106,24 @@ curl --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/r
 }
 '
 ```
+
+
+kafka-avro-console-producer \
+ --broker-list kafka-1:9092 \
+ --topic donuts  \
+ --property schema.registry.url=http://localhost:8081 \
+ --property value.schema.id=1
+
+
+Docker-compose exec schema-registry /bin/bash
+
+
+ kafka-avro-console-consumer \
+ --bootstrap-server kafka-1:9092 \
+ --topic donuts  \
+ --property schema.registry.url=http://localhost:8081 \
+ --property value.schema.id=1 \
+ --from-beginning \
+ --property print.headers=true --property headers.key.separator=: --property headers.deserializer=org.apache.kafka.common.serialization.BytesDeserializer
+
+
