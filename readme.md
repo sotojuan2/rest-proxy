@@ -16,12 +16,14 @@
    curl -X POST -H "Content-Type: application/vnd.kafka.v2+json" --data '{"name": "ci1", "format": "json", "auto.offset.reset": "earliest"}' http://localhost:8082/consumers/cg1
    ```
 2. Subscribe to the topic purchases.
+
 ```bash
    curl -X POST \
    -H "Content-Type: application/vnd.kafka.v2+json" \
    --data '{"topics":["purchases"]}' \
    http://localhost:8082/consumers/cg1/instances/ci1/subscription
 ```
+
 3. Consume
 
 ```bash
@@ -39,7 +41,7 @@ curl -X GET \
      http://localhost:8082/consumers/cg1/instances/ci1/records
 ```
 
-5. Close the consumer with a DELETE 
+5. Close the consumer with a DELETE
 
 ```bash
 curl -X DELETE \
@@ -61,10 +63,10 @@ curl -X DELETE \
 curl -v -X POST -H "Content-Type: application/json" --data @data/test.avro http://localhost:8081/subjects/donuts-value/versions
 ```
 
-3. Produce Events (Avro, schema_id & headers)
+4. Produce Events (Avro, schema_id & headers)
 
 ```bash
-curl --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/records" \
+curl -X POST --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/records" \
 --header 'Content-Type: application/json' \
 --data '{
    "key": {
@@ -108,22 +110,34 @@ curl --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/r
 ```
 
 
-kafka-avro-console-producer \
- --broker-list kafka-1:9092 \
- --topic donuts  \
- --property schema.registry.url=http://localhost:8081 \
- --property value.schema.id=1
 
+5. Consume events
 
+Login in Schema registry pod
+
+```bash
 Docker-compose exec schema-registry /bin/bash
+```
+
+Consume with kafka avro clis
+
+```bash
+kafka-avro-console-consumer \
+--bootstrap-server kafka-1:9092 \
+--topic donuts \
+--property schema.registry.url=http://localhost:8081 \
+--property value.schema.id=1 \
+--from-beginning \
+--property print.headers=true --property headers.key.separator=: --property headers.deserializer=org.apache.kafka.common.serialization.BytesDeserializer
+```
+
+## Stream using curl
+
+```bash
+curl -X POST --location "http://localhost:8082/v3/clusters/${cluster_id}/topics/donuts/records" \
+--header 'Content-Type: application/json' \
+--header 'Transfer-Encoding: chunked' -T-
+```
 
 
- kafka-avro-console-consumer \
- --bootstrap-server kafka-1:9092 \
- --topic donuts  \
- --property schema.registry.url=http://localhost:8081 \
- --property value.schema.id=1 \
- --from-beginning \
- --property print.headers=true --property headers.key.separator=: --property headers.deserializer=org.apache.kafka.common.serialization.BytesDeserializer
-
-
+{"key": {"type": "BINARY","data": "Zm9vYmFy"}, "headers": [{"name": "Header-1","value": "aG9sYQ=="}],"value": {"schema_version": 1,"data": {"field1": "hola1", "field2": 5}},"timestamp": "2021-02-05T19:14:42Z"}

@@ -155,11 +155,10 @@ services:
       retries: 20
       test: curl http://localhost:8083/ --output /dev/null || exit 1
 
-  console:
-    hostname: console
-    image: docker.redpanda.com/vectorized/console:latest
-    ports:
-      - 8080:8080
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:${TAG}
+    hostname: control-center
+    container_name: control-center
     depends_on:
       kafka-1:
         condition: service_healthy
@@ -169,19 +168,17 @@ services:
         condition: service_healthy
       connect-1:
         condition: service_healthy
-    entrypoint: /bin/sh
-    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    ports:
+      - "9021:9021"
     environment:
-      CONFIG_FILEPATH: /tmp/config.yml
-      TZ: ${TZ}
-      CONSOLE_CONFIG_FILE: |
-        kafka:
-          brokers: ["kafka-1:9092", "kafka-2:9092"]
-          schemaRegistry:
-            enabled: true
-            urls: ["http://schema-registry:8081"]
-        connect:
-          enabled: true
-          clusters:
-            - name: my-connect
-              url: http://connect-1:8083
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: '"kafka-1:9092,"kafka-2:9092'
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+
+
+  
+
